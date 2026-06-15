@@ -1,0 +1,66 @@
+// ═══════════════════════════════════════════════════════════════════════════
+// GESTVAC — Reglas de seguridad para Firestore
+// Pega esto en: Firebase Console → Firestore → Reglas → Publicar
+// ═══════════════════════════════════════════════════════════════════════════
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Funciones helper ───────────────────────────────────────────────────
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    function miPerfil() {
+      return get(/databases/$(database)/documents/empleados/$(request.auth.uid)).data;
+    }
+
+    function esAdmin() {
+      return isAuth() && miPerfil().rol == 'admin';
+    }
+
+    // ── Empleados ──────────────────────────────────────────────────────────
+    match /empleados/{empleadoId} {
+      // Cada usuario lee su propio perfil; admin lee todos
+      allow read: if isAuth() && (
+        request.auth.uid == empleadoId || esAdmin() ||
+        miPerfil().rol in ['encargado_taller', 'jefe_zona', 'responsable_oficina']
+      );
+      // Solo admin crea/actualiza perfiles
+      allow write: if esAdmin();
+      // El propio empleado puede actualizar (para cambios de PIN en el futuro)
+      allow update: if isAuth() && request.auth.uid == empleadoId;
+    }
+
+    // ── Solicitudes ────────────────────────────────────────────────────────
+    match /solicitudes/{solicitudId} {
+      allow read: if isAuth();
+      // Crear: solo el propio empleado
+      allow create: if isAuth() && request.resource.data.empleadoId == request.auth.uid;
+      // Actualizar estado: managers y admin
+      allow update: if isAuth() && (
+        esAdmin() ||
+        miPerfil().rol in ['encargado_taller', 'jefe_zona', 'responsable_oficina']
+      );
+      allow delete: if esAdmin();
+
+      // Subcolección historial
+      match /historial/{entradaId} {
+        allow read:  if isAuth();
+        allow create: if isAuth();
+        allow write:  if esAdmin();
+      }
+    }
+
+    // ── Talleres y Zonas (solo lectura para todos) ─────────────────────────
+    match /talleres/{id} {
+      allow read: if isAuth();
+      allow write: if esAdmin();
+    }
+    match /zonas/{id} {
+      allow read: if isAuth();
+      allow write: if esAdmin();
+    }
+  }
+}
