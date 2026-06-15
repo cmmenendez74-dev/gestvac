@@ -3,28 +3,17 @@ import { getAuth }       from 'firebase/auth'
 import { getFirestore }  from 'firebase/firestore'
 
 const firebaseConfig = {
-  apiKey:            "AIzaSyCJ6vr0v7J6wRClgDiWPAlwI4_58iZddfo",
-  authDomain:        "gestion-vacaciones-ff6b2.firebaseapp.com",
-  projectId:         "gestion-vacaciones-ff6b2",
-  storageBucket:     "gestion-vacaciones-ff6b2.firebasestorage.app",
-  messagingSenderId: "487082338792",
-  appId:             "1:487082338792:web:f646f25ab48ba6ebd59c5d",
+  apiKey:            import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain:        import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId:         import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket:     import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_ID,
+  appId:             import.meta.env.VITE_FIREBASE_APP_ID,
 }
 
 const app = initializeApp(firebaseConfig)
-
 export const auth = getAuth(app)
 export const db   = getFirestore(app)
-
-// ── Constantes de la app ─────────────────────────────────────────────────────
-export const ROLES = {
-  TECNICO:             'tecnico',
-  ENCARGADO_TALLER:    'encargado_taller',
-  JEFE_ZONA:           'jefe_zona',
-  OFICINISTA:          'oficinista',
-  RESPONSABLE_OFICINA: 'responsable_oficina',
-  ADMIN:               'admin',
-}
 
 export const ROLE_LABELS = {
   tecnico:             'Técnico de Taller',
@@ -45,10 +34,3 @@ export const ESTADO_CONFIG = {
 }
 
 export const DIAS_ANUALES = 22
-
-// ── Colecciones Firestore ────────────────────────────────────────────────────
-// empleados      → perfil de cada usuario
-// solicitudes    → solicitudes de vacaciones
-// historial      → subcolección de cada solicitud
-// talleres       → catálogo de talleres
-// zonas          → catálogo de zonas
